@@ -1,0 +1,31 @@
+# Flask web framework
+flask==3.0.0
+flask-cors==4.0.0
+
+# Database
+psycopg[binary]==3.2.13
+sqlalchemy>=2.0.36
+alembic==1.13.1
+
+# Gmail API
+google-api-python-client==2.111.0
+google-auth-httplib2==0.2.0
+google-auth-oauthlib==1.2.0
+
+# Data processing
+python-dateutil==2.8.2
+beautifulsoup4==4.12.2
+requests==2.31.0
+lxml==5.1.0
+
+# Scheduling
+apscheduler==3.10.4
+
+# Environment variables
+python-dotenv==1.0.0
+
+# Development
+watchdog==3.0.0
+
+# MCP Server
+mcp>=1.0.0

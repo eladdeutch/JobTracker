@@ -1,0 +1,726 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Job Application Tracker</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="logo">
+                    <span class="logo-icon">◈</span>
+                    <span class="logo-text">JobTrack</span>
+                </div>
+            </div>
+            
+            <nav class="sidebar-nav">
+                <a href="#" class="nav-item active" data-view="dashboard">
+                    <span class="nav-icon">◐</span>
+                    <span>Dashboard</span>
+                </a>
+                <a href="#" class="nav-item" data-view="applications">
+                    <span class="nav-icon">◫</span>
+                    <span>Applications</span>
+                </a>
+                <a href="#" class="nav-item" data-view="emails">
+                    <span class="nav-icon">✉</span>
+                    <span>Email Scanner</span>
+                </a>
+                <a href="#" class="nav-item" data-view="reminders">
+                    <span class="nav-icon">⏰</span>
+                    <span>Reminders</span>
+                </a>
+            </nav>
+            
+            <div class="sidebar-footer">
+                <div class="gmail-status" id="gmail-status">
+                    <span class="status-dot disconnected"></span>
+                    <span class="status-text">Gmail Disconnected</span>
+                </div>
+                <button class="btn-gmail" id="btn-connect-gmail">
+                    Connect Gmail
+                </button>
+            </div>
+        </aside>
+        
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Dashboard View -->
+            <section class="view active" id="view-dashboard">
+                <header class="view-header">
+                    <h1>Dashboard</h1>
+                    <p class="subtitle">Your job search at a glance</p>
+                </header>
+                
+                <!-- Stats Cards -->
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon blue">◫</div>
+                        <div class="stat-content">
+                            <span class="stat-value" id="stat-total">0</span>
+                            <span class="stat-label">Total Applications</span>
+                        </div>
+                    </div>
+                    <div class="stat-card highlight-active">
+                        <div class="stat-icon green">✓</div>
+                        <div class="stat-content">
+                            <span class="stat-value" id="stat-active">0</span>
+                            <span class="stat-label">Active</span>
+                            <span class="stat-sublabel">Not rejected/withdrawn</span>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon red">✕</div>
+                        <div class="stat-content">
+                            <span class="stat-value" id="stat-rejected">0</span>
+                            <span class="stat-label">Rejected</span>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon purple">☎</div>
+                        <div class="stat-content">
+                            <span class="stat-value" id="stat-interviews">0</span>
+                            <span class="stat-label">In Interviews</span>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon gold">★</div>
+                        <div class="stat-content">
+                            <span class="stat-value" id="stat-offers">0</span>
+                            <span class="stat-label">Offers</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Interview Funnel -->
+                <div class="card funnel-card">
+                    <h3>📊 Interview Funnel - Where Are You Falling Off?</h3>
+                    <div class="funnel-container" id="interview-funnel">
+                        <!-- Populated by JS -->
+                    </div>
+                </div>
+                
+                <!-- Response Rates & Rejection Breakdown -->
+                <div class="dashboard-row">
+                    <div class="card rates-card">
+                        <h3>Response Metrics</h3>
+                        <div class="rates-grid">
+                            <div class="rate-item">
+                                <div class="rate-circle" id="rate-response">
+                                    <svg viewBox="0 0 36 36">
+                                        <path class="rate-bg" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"/>
+                                        <path class="rate-fill" stroke-dasharray="0, 100" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"/>
+                                    </svg>
+                                    <span class="rate-value">0%</span>
+                                </div>
+                                <span class="rate-label">Response Rate</span>
+                            </div>
+                            <div class="rate-item">
+                                <div class="rate-circle" id="rate-interview">
+                                    <svg viewBox="0 0 36 36">
+                                        <path class="rate-bg" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"/>
+                                        <path class="rate-fill purple" stroke-dasharray="0, 100" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"/>
+                                    </svg>
+                                    <span class="rate-value">0%</span>
+                                </div>
+                                <span class="rate-label">Interview Rate</span>
+                            </div>
+                            <div class="rate-item">
+                                <div class="rate-circle" id="rate-offer">
+                                    <svg viewBox="0 0 36 36">
+                                        <path class="rate-bg" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"/>
+                                        <path class="rate-fill gold" stroke-dasharray="0, 100" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"/>
+                                    </svg>
+                                    <span class="rate-value">0%</span>
+                                </div>
+                                <span class="rate-label">Offer Rate</span>
+                            </div>
+                            <div class="rate-item">
+                                <div class="avg-days" id="avg-days">
+                                    <span class="days-value">--</span>
+                                    <span class="days-unit">days</span>
+                                </div>
+                                <span class="rate-label">Avg Response Time</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="card rejection-card">
+                        <h3>❌ Rejection Breakdown</h3>
+                        <div class="rejection-summary" id="rejection-summary">
+                            <!-- Populated by JS -->
+                        </div>
+                        <div class="rejection-stages" id="rejection-stages">
+                            <!-- Populated by JS -->
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Status Breakdown -->
+                <div class="dashboard-row">
+                    <div class="card status-chart-card">
+                        <h3>Status Breakdown</h3>
+                        <div class="status-bars" id="status-bars">
+                            <!-- Populated by JS -->
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Recent Activity -->
+                <div class="card">
+                    <h3>Recent Activity</h3>
+                    <div class="activity-list" id="recent-activity">
+                        <p class="empty-state">No applications yet. Add your first one!</p>
+                    </div>
+                </div>
+            </section>
+            
+            <!-- Applications View -->
+            <section class="view" id="view-applications">
+                <header class="view-header">
+                    <div class="header-left">
+                        <h1>Applications</h1>
+                        <p class="subtitle" id="app-count">0 applications</p>
+                    </div>
+                    <div class="header-actions">
+                        <div class="search-box">
+                            <input type="text" id="search-input" placeholder="Search companies, positions...">
+                        </div>
+                        <select id="status-filter" class="select-filter">
+                            <option value="">All Statuses</option>
+                            <option value="applied">Applied</option>
+                            <option value="phone_screen">Phone Screen</option>
+                            <option value="first_interview">First Interview</option>
+                            <option value="second_interview">Second Interview</option>
+                            <option value="third_interview">Third Interview</option>
+                            <option value="offer_received">Offer Received</option>
+                            <option value="rejected">Rejected</option>
+                            <option value="withdrawn">Withdrawn</option>
+                            <option value="no_response">No Response</option>
+                        </select>
+                        <button class="btn-primary" id="btn-add-application">
+                            + Add Application
+                        </button>
+                    </div>
+                </header>
+                
+                <div class="applications-table-container">
+                    <table class="applications-table">
+                        <thead>
+                            <tr>
+                                <th>Company</th>
+                                <th>Position</th>
+                                <th>Status</th>
+                                <th>Applied</th>
+                                <th>Last Updated</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="applications-tbody">
+                            <!-- Populated by JS -->
+                        </tbody>
+                    </table>
+                </div>
+                
+                <div class="pagination" id="pagination">
+                    <!-- Populated by JS -->
+                </div>
+            </section>
+            
+            <!-- Emails View -->
+            <section class="view" id="view-emails">
+                <header class="view-header">
+                    <div class="header-left">
+                        <h1>Email Scanner</h1>
+                        <p class="subtitle">Scan Gmail for job-related emails</p>
+                    </div>
+                    <div class="header-actions">
+                        <button class="btn-secondary" id="btn-scan-emails">
+                            <span class="btn-text">🔍 Scan Emails</span>
+                            <span class="btn-spinner" style="display: none;">
+                                <span class="spinner"></span> Scanning...
+                            </span>
+                        </button>
+                        <button class="btn-primary" id="btn-auto-process">
+                            <span class="btn-text">⚡ Auto-Process</span>
+                            <span class="btn-spinner" style="display: none;">
+                                <span class="spinner"></span> Processing...
+                            </span>
+                        </button>
+                    </div>
+                </header>
+                
+                <div class="email-scanner-info card">
+                    <p>📧 Connect your Gmail to automatically find and track job applications from your inbox.</p>
+                    <ul>
+                        <li>Searches for job-related keywords in your emails</li>
+                        <li>Extracts company names and positions</li>
+                        <li>Creates applications automatically or lets you review</li>
+                    </ul>
+                </div>
+                
+                <div class="unprocessed-emails card">
+                    <h3>Unprocessed Emails <span class="badge" id="unprocessed-count">0</span></h3>
+                    <div class="email-list" id="email-list">
+                        <p class="empty-state">No unprocessed emails. Click "Scan Emails" to search your inbox.</p>
+                    </div>
+                </div>
+            </section>
+            
+            <!-- Reminders View -->
+            <section class="view" id="view-reminders">
+                <header class="view-header">
+                    <div class="header-left">
+                        <h1>Reminders</h1>
+                        <p class="subtitle">Follow-up reminders for your applications</p>
+                    </div>
+                    <div class="header-actions">
+                        <button class="btn-secondary" id="btn-auto-reminders">
+                            ⚡ Auto-Create Reminders
+                        </button>
+                    </div>
+                </header>
+                
+                <div class="reminders-section">
+                    <div class="card">
+                        <h3>Due Today & Overdue</h3>
+                        <div class="reminder-list" id="due-reminders">
+                            <p class="empty-state">No reminders due today. Great job staying on top of things!</p>
+                        </div>
+                    </div>
+                    
+                    <div class="card">
+                        <h3>Upcoming</h3>
+                        <div class="reminder-list" id="upcoming-reminders">
+                            <p class="empty-state">No upcoming reminders.</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+    
+    <!-- Application Modal -->
+    <div class="modal" id="application-modal">
+        <div class="modal-overlay"></div>
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modal-title">Add Application</h2>
+                <button class="modal-close">&times;</button>
+            </div>
+            <form id="application-form">
+                <input type="hidden" id="app-id">
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="company-name">Company Name *</label>
+                        <input type="text" id="company-name" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="position-title">Position Title *</label>
+                        <input type="text" id="position-title" required>
+                    </div>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="app-status">Status</label>
+                        <select id="app-status">
+                            <option value="applied">Applied</option>
+                            <option value="phone_screen">Phone Screen</option>
+                            <option value="first_interview">First Interview</option>
+                            <option value="second_interview">Second Interview</option>
+                            <option value="third_interview">Third Interview</option>
+                            <option value="offer_received">Offer Received</option>
+                            <option value="offer_accepted">Offer Accepted</option>
+                            <option value="offer_declined">Offer Declined</option>
+                            <option value="rejected">Rejected</option>
+                            <option value="withdrawn">Withdrawn</option>
+                            <option value="no_response">No Response</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="applied-date">Applied Date</label>
+                        <input type="date" id="applied-date">
+                    </div>
+                </div>
+                
+                <div class="form-row rejected-stage-row" id="rejected-stage-row" style="display: none;">
+                    <div class="form-group full-width">
+                        <label for="rejected-at-stage">Rejected At Stage</label>
+                        <select id="rejected-at-stage">
+                            <option value="">-- Select stage --</option>
+                            <option value="Application/Resume Stage">Application/Resume Stage</option>
+                            <option value="After Phone Screen">After Phone Screen</option>
+                            <option value="After First Interview">After First Interview</option>
+                            <option value="After Second Interview">After Second Interview</option>
+                            <option value="After Third Interview">After Third Interview</option>
+                            <option value="After Offer Negotiation">After Offer Negotiation</option>
+                            <option value="Other">Other</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="job-url">Job URL</label>
+                        <div class="input-with-button">
+                            <input type="url" id="job-url" placeholder="https://...">
+                            <button type="button" id="btn-fetch-description" class="btn-fetch" title="Fetch job description from URL">
+                                <span class="fetch-text">Fetch JD</span>
+                                <span class="fetch-spinner" style="display: none;"></span>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="location">Location</label>
+                        <input type="text" id="location" placeholder="City, State or Remote">
+                    </div>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="salary-min">Salary Min</label>
+                        <input type="number" id="salary-min" placeholder="50000">
+                    </div>
+                    <div class="form-group">
+                        <label for="salary-max">Salary Max</label>
+                        <input type="number" id="salary-max" placeholder="80000">
+                    </div>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="recruiter-name">Recruiter Name</label>
+                        <input type="text" id="recruiter-name">
+                    </div>
+                    <div class="form-group">
+                        <label for="recruiter-email">Recruiter Email</label>
+                        <input type="email" id="recruiter-email">
+                    </div>
+                </div>
+                
+                <div class="form-group full-width">
+                    <label for="job-description">
+                        Job Description
+                        <span class="label-hint">(paste or fetch from URL)</span>
+                    </label>
+                    <textarea id="job-description" rows="6" placeholder="Paste the job description here or click 'Fetch JD' above to auto-capture from the job URL..."></textarea>
+                </div>
+                
+                <div class="form-group full-width">
+                    <label for="notes">Notes</label>
+                    <textarea id="notes" rows="3" placeholder="Interview feedback, contact info, etc."></textarea>
+                </div>
+                
+                <div class="modal-actions">
+                    <button type="button" class="btn-secondary modal-cancel">Cancel</button>
+                    <button type="submit" class="btn-primary">Save Application</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Reminder Modal -->
+    <div class="modal" id="reminder-modal">
+        <div class="modal-overlay"></div>
+        <div class="modal-content small">
+            <div class="modal-header">
+                <h2>Set Reminder</h2>
+                <button class="modal-close">&times;</button>
+            </div>
+            <form id="reminder-form">
+                <input type="hidden" id="reminder-app-id">
+                
+                <div class="form-group">
+                    <label for="reminder-date">Reminder Date</label>
+                    <input type="date" id="reminder-date" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="reminder-message">Message</label>
+                    <textarea id="reminder-message" rows="2" placeholder="Follow up with recruiter..."></textarea>
+                </div>
+                
+                <div class="modal-actions">
+                    <button type="button" class="btn-secondary modal-cancel">Cancel</button>
+                    <button type="submit" class="btn-primary">Create Reminder</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Application Detail Modal -->
+    <div class="modal" id="application-detail-modal">
+        <div class="modal-overlay"></div>
+        <div class="modal-content large">
+            <div class="modal-header">
+                <h2 id="detail-modal-title">Application Details</h2>
+                <button class="modal-close">&times;</button>
+            </div>
+            <div class="application-detail-content">
+                <!-- Application Info Section -->
+                <div class="detail-section">
+                    <div class="detail-header">
+                        <h3 id="detail-company-position">Company - Position</h3>
+                        <span class="status-badge" id="detail-status">Applied</span>
+                    </div>
+                    <div class="detail-meta">
+                        <span id="detail-applied-date"></span>
+                        <span id="detail-location"></span>
+                    </div>
+                    <div class="detail-links" id="detail-links"></div>
+                </div>
+                
+                <!-- Interview Timeline Section -->
+                <div class="detail-section">
+                    <div class="section-header">
+                        <h4>📅 Interviews</h4>
+                        <button class="btn-small btn-primary" id="btn-add-interview-detail">+ Schedule Interview</button>
+                    </div>
+                    <div class="interview-timeline" id="interview-timeline">
+                        <p class="empty-state">No interviews scheduled yet.</p>
+                    </div>
+                </div>
+                
+                <!-- Job Description Section -->
+                <div class="detail-section collapsible" id="job-description-section">
+                    <div class="section-header clickable" onclick="app.toggleSection('job-description-content')">
+                        <h4>📋 Job Description</h4>
+                        <span class="collapse-icon">▼</span>
+                    </div>
+                    <div class="section-content collapsed" id="job-description-content">
+                        <p class="empty-state" id="detail-job-description">No job description saved.</p>
+                    </div>
+                </div>
+                
+                <!-- Notes Section -->
+                <div class="detail-section">
+                    <div class="section-header">
+                        <h4>📝 Notes</h4>
+                    </div>
+                    <div class="detail-notes" id="detail-notes">
+                        <p class="empty-state">No notes.</p>
+                    </div>
+                </div>
+                
+                <!-- Actions -->
+                <div class="detail-actions">
+                    <button class="btn-secondary" onclick="app.closeModals()">Close</button>
+                    <button class="btn-secondary" id="btn-edit-from-detail">Edit Application</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Interview Modal -->
+    <div class="modal" id="interview-modal">
+        <div class="modal-overlay"></div>
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="interview-modal-title">Schedule Interview</h2>
+                <button class="modal-close">&times;</button>
+            </div>
+            <form id="interview-form">
+                <input type="hidden" id="interview-id">
+                <input type="hidden" id="interview-app-id">
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="interview-type">Interview Type</label>
+                        <select id="interview-type">
+                            <option value="phone_screen">Phone Screen</option>
+                            <option value="video_call" selected>Video Call</option>
+                            <option value="technical">Technical Interview</option>
+                            <option value="behavioral">Behavioral Interview</option>
+                            <option value="onsite">Onsite Interview</option>
+                            <option value="panel">Panel Interview</option>
+                            <option value="final">Final Round</option>
+                            <option value="other">Other</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="interview-title">Title (optional)</label>
+                        <input type="text" id="interview-title" placeholder="e.g., Technical Screen with John">
+                    </div>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="interview-date">Date *</label>
+                        <input type="date" id="interview-date" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="interview-time">Time *</label>
+                        <input type="time" id="interview-time" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="interview-duration">Duration (min)</label>
+                        <select id="interview-duration">
+                            <option value="30">30 min</option>
+                            <option value="45">45 min</option>
+                            <option value="60" selected>1 hour</option>
+                            <option value="90">1.5 hours</option>
+                            <option value="120">2 hours</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="interview-meeting-link">Meeting Link</label>
+                        <input type="url" id="interview-meeting-link" placeholder="Zoom/Meet/Teams link">
+                    </div>
+                    <div class="form-group">
+                        <label for="interview-location">Location</label>
+                        <input type="text" id="interview-location" placeholder="Address or 'Remote'">
+                    </div>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="interviewer-name">Interviewer Name</label>
+                        <input type="text" id="interviewer-name" placeholder="John Smith">
+                    </div>
+                    <div class="form-group">
+                        <label for="interviewer-email">Interviewer Email</label>
+                        <input type="email" id="interviewer-email" placeholder="john@company.com">
+                    </div>
+                </div>
+                
+                <div class="form-group full-width">
+                    <label for="preparation-notes">Preparation Notes</label>
+                    <textarea id="preparation-notes" rows="3" placeholder="Topics to prepare, questions to ask, research notes..."></textarea>
+                </div>
+                
+                <div class="form-group calendar-sync-option">
+                    <label class="checkbox-label">
+                        <input type="checkbox" id="sync-to-calendar" checked>
+                        <span>Add to Google Calendar</span>
+                    </label>
+                </div>
+                
+                <div class="modal-actions">
+                    <button type="button" class="btn-secondary modal-cancel">Cancel</button>
+                    <button type="submit" class="btn-primary">
+                        <span class="btn-text">Schedule Interview</span>
+                        <span class="btn-spinner" style="display: none;"></span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Interview Notes Modal -->
+    <div class="modal" id="interview-notes-modal">
+        <div class="modal-overlay"></div>
+        <div class="modal-content large">
+            <div class="modal-header">
+                <h2>Interview Notes & Feedback</h2>
+                <button class="modal-close">&times;</button>
+            </div>
+            <form id="interview-notes-form">
+                <input type="hidden" id="notes-interview-id">
+                
+                <div class="interview-info" id="interview-info-display">
+                    <!-- Filled dynamically -->
+                </div>
+                
+                <!-- Preparation Notes (read-only display) -->
+                <div class="form-group full-width prep-notes-display" id="prep-notes-container" style="display: none;">
+                    <label>📚 Your Preparation Notes</label>
+                    <div class="readonly-notes" id="prep-notes-display"></div>
+                </div>
+                
+                <div class="notes-tabs">
+                    <button type="button" class="tab-btn active" data-tab="general">General Notes</button>
+                    <button type="button" class="tab-btn" data-tab="questions">Questions Asked</button>
+                    <button type="button" class="tab-btn" data-tab="feedback">Self Feedback</button>
+                </div>
+                
+                <div class="tab-content active" id="tab-general">
+                    <div class="form-group full-width">
+                        <label for="post-interview-notes">Interview Summary</label>
+                        <textarea id="post-interview-notes" rows="5" placeholder="How did the interview go overall? Key topics discussed, impressions of the team/company..."></textarea>
+                    </div>
+                </div>
+                
+                <div class="tab-content" id="tab-questions">
+                    <div class="form-group full-width">
+                        <label for="questions-asked">Questions They Asked</label>
+                        <textarea id="questions-asked" rows="4" placeholder="List the questions you were asked...&#10;- Tell me about yourself&#10;- Describe a challenging project&#10;- System design question about..."></textarea>
+                    </div>
+                    <div class="form-group full-width">
+                        <label for="your-questions">Questions You Asked</label>
+                        <textarea id="your-questions" rows="3" placeholder="Questions you asked them and their answers..."></textarea>
+                    </div>
+                </div>
+                
+                <div class="tab-content" id="tab-feedback">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="went-well">What Went Well ✓</label>
+                            <textarea id="went-well" rows="3" placeholder="Things you did well..."></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label for="to-improve">Areas to Improve ✗</label>
+                            <textarea id="to-improve" rows="3" placeholder="Things to work on..."></textarea>
+                        </div>
+                    </div>
+                    <div class="form-group full-width">
+                        <label for="follow-up-items">Follow-up Items</label>
+                        <textarea id="follow-up-items" rows="2" placeholder="Things to send, research, or prepare for next round..."></textarea>
+                    </div>
+                </div>
+                
+                <div class="form-row outcome-row">
+                    <div class="form-group">
+                        <label for="interview-outcome">Outcome</label>
+                        <select id="interview-outcome">
+                            <option value="">-- Pending --</option>
+                            <option value="passed">Passed / Moving Forward</option>
+                            <option value="failed">Did Not Pass</option>
+                            <option value="waiting">Waiting for Response</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="confidence-rating">Your Confidence (1-5)</label>
+                        <select id="confidence-rating">
+                            <option value="">-- Rate --</option>
+                            <option value="1">1 - Very Uncertain</option>
+                            <option value="2">2 - Somewhat Uncertain</option>
+                            <option value="3">3 - Neutral</option>
+                            <option value="4">4 - Fairly Confident</option>
+                            <option value="5">5 - Very Confident</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="checkbox-label" style="margin-top: 28px;">
+                            <input type="checkbox" id="mark-completed">
+                            <span>Mark as Completed</span>
+                        </label>
+                    </div>
+                </div>
+                
+                <div class="modal-actions">
+                    <button type="button" class="btn-secondary modal-cancel">Cancel</button>
+                    <button type="submit" class="btn-primary">Save Notes</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Toast Container -->
+    <div class="toast-container" id="toast-container"></div>
+    
+    <script src="js/api.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>

@@ -9,6 +9,7 @@ from backend.models.database import Base
 class ApplicationStatus(enum.Enum):
     """Status stages for job applications."""
     APPLIED = "applied"
+    PROFILE_VIEWED = "profile_viewed"
     PHONE_SCREEN = "phone_screen"
     FIRST_INTERVIEW = "first_interview"
     SECOND_INTERVIEW = "second_interview"

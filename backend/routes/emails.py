@@ -304,6 +304,7 @@ def _get_next_interview_status(current_status: ApplicationStatus) -> Application
     """Get the next interview status in progression."""
     progression_map = {
         ApplicationStatus.APPLIED: ApplicationStatus.PHONE_SCREEN,
+        ApplicationStatus.PROFILE_VIEWED: ApplicationStatus.PHONE_SCREEN,
         ApplicationStatus.NO_RESPONSE: ApplicationStatus.PHONE_SCREEN,
         ApplicationStatus.PHONE_SCREEN: ApplicationStatus.FIRST_INTERVIEW,
         ApplicationStatus.FIRST_INTERVIEW: ApplicationStatus.SECOND_INTERVIEW,
@@ -376,6 +377,7 @@ def _update_application_status(application: Application, new_status: Application
             # Auto-determine rejection stage from current status
             rejection_stage_map = {
                 ApplicationStatus.APPLIED: "Application/Resume Stage",
+                ApplicationStatus.PROFILE_VIEWED: "Application/Resume Stage",
                 ApplicationStatus.NO_RESPONSE: "Application/Resume Stage",
                 ApplicationStatus.PHONE_SCREEN: "After Phone Screen",
                 ApplicationStatus.FIRST_INTERVIEW: "After First Interview",

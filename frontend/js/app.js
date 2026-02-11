@@ -1455,6 +1455,7 @@ class JobTrackerApp {
     formatStatus(status) {
         const labels = {
             applied: 'Applied',
+            profile_viewed: 'Profile Viewed',
             phone_screen: 'Phone Screen',
             first_interview: '1st Interview',
             second_interview: '2nd Interview',

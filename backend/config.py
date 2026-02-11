@@ -1,25 +1,36 @@
 """Application configuration."""
 import os
 from dotenv import load_dotenv
+from cryptography.fernet import Fernet
 
 load_dotenv()
 
 
 class Config:
     """Base configuration."""
-    
+
     # Flask
     SECRET_KEY = os.getenv('FLASK_SECRET_KEY', 'dev-secret-key-change-me')
     DEBUG = os.getenv('FLASK_DEBUG', 'True').lower() == 'true'
     HOST = os.getenv('FLASK_HOST', '127.0.0.1')
     PORT = int(os.getenv('FLASK_PORT', 5000))
-    
+
+    # Authentication
+    # Set APP_PASSWORD in .env to require login. Leave empty to skip auth (dev only).
+    APP_PASSWORD = os.getenv('APP_PASSWORD', '')
+
+    # Encryption key for OAuth tokens at rest.
+    # Generate one with: python -c "from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())"
+    # Store it in .env as TOKEN_ENCRYPTION_KEY=<key>
+    _encryption_key = os.getenv('TOKEN_ENCRYPTION_KEY', '')
+    FERNET = Fernet(_encryption_key.encode()) if _encryption_key else None
+
     # Database (using psycopg3 driver)
     DATABASE_URL = os.getenv(
-        'DATABASE_URL', 
+        'DATABASE_URL',
         'postgresql+psycopg://postgres:postgres@localhost:5432/job_tracker'
     )
-    
+
     # Google OAuth
     GOOGLE_CLIENT_ID = os.getenv('GOOGLE_CLIENT_ID', '')
     GOOGLE_CLIENT_SECRET = os.getenv('GOOGLE_CLIENT_SECRET', '')

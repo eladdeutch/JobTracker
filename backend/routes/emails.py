@@ -4,6 +4,7 @@ from datetime import datetime, timedelta
 
 from backend.models import SessionLocal, Email, Application, UserSettings, ApplicationStatus
 from backend.services import gmail_service, email_parser
+from backend.services.encryption import encrypt_token, decrypt_token
 
 emails_bp = Blueprint('emails', __name__, url_prefix='/api/emails')
 
@@ -22,17 +23,17 @@ def scan_emails():
         if not settings or not settings.gmail_refresh_token:
             return jsonify({"error": "Gmail not connected"}), 401
         
-        # Initialize Gmail service
+        # Initialize Gmail service (decrypt tokens from DB)
         gmail_service.set_credentials(
-            access_token=settings.gmail_access_token or '',
-            refresh_token=settings.gmail_refresh_token,
+            access_token=decrypt_token(settings.gmail_access_token or ''),
+            refresh_token=decrypt_token(settings.gmail_refresh_token),
             expiry=settings.gmail_token_expiry
         )
-        
-        # Update tokens if refreshed
+
+        # Update tokens if refreshed (encrypt before saving)
         updated_tokens = gmail_service.get_updated_tokens()
         if updated_tokens:
-            settings.gmail_access_token = updated_tokens['access_token']
+            settings.gmail_access_token = encrypt_token(updated_tokens['access_token'])
             if updated_tokens.get('expiry'):
                 settings.gmail_token_expiry = datetime.fromisoformat(updated_tokens['expiry'])
         

@@ -147,7 +147,7 @@ class StatsService:
         
         # Define the funnel stages in order
         funnel_stages = [
-            ("Applied", [ApplicationStatus.APPLIED, ApplicationStatus.NO_RESPONSE]),
+            ("Applied", [ApplicationStatus.APPLIED, ApplicationStatus.PROFILE_VIEWED, ApplicationStatus.NO_RESPONSE]),
             ("Phone Screen", [ApplicationStatus.PHONE_SCREEN]),
             ("First Interview", [ApplicationStatus.FIRST_INTERVIEW]),
             ("Second Interview", [ApplicationStatus.SECOND_INTERVIEW]),
@@ -322,6 +322,7 @@ class StatsService:
         """Format status enum to readable label."""
         labels = {
             ApplicationStatus.APPLIED: "Applied",
+            ApplicationStatus.PROFILE_VIEWED: "Profile Viewed",
             ApplicationStatus.PHONE_SCREEN: "Phone Screen",
             ApplicationStatus.FIRST_INTERVIEW: "1st Interview",
             ApplicationStatus.SECOND_INTERVIEW: "2nd Interview",
@@ -339,6 +340,7 @@ class StatsService:
         """Get color for status visualization."""
         colors = {
             ApplicationStatus.APPLIED: "#3B82F6",  # Blue
+            ApplicationStatus.PROFILE_VIEWED: "#0EA5E9",  # Sky blue
             ApplicationStatus.PHONE_SCREEN: "#6366F1",  # Indigo
             ApplicationStatus.FIRST_INTERVIEW: "#8B5CF6",  # Purple
             ApplicationStatus.SECOND_INTERVIEW: "#A855F7",  # Light purple

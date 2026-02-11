@@ -799,6 +799,7 @@ button.loading {
 }
 
 .status-applied { background: var(--accent-blue-dim); color: var(--accent-blue); }
+.status-profile_viewed { background: rgba(14, 165, 233, 0.15); color: #0EA5E9; }
 .status-phone_screen { background: rgba(99, 102, 241, 0.15); color: #6366f1; }
 .status-first_interview { background: var(--accent-purple-dim); color: var(--accent-purple); }
 .status-second_interview { background: rgba(168, 85, 247, 0.15); color: #a855f7; }

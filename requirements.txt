@@ -1,6 +1,10 @@
 # Flask web framework
 flask==3.0.0
 flask-cors==4.0.0
+flask-login==0.6.3
+
+# Security
+cryptography==41.0.7
 
 # Database
 psycopg[binary]==3.2.13

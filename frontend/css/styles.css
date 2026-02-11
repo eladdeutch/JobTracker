@@ -2084,3 +2084,64 @@ button.loading {
         width: 100%;
     }
 }
+
+/* ============================================
+   Login Overlay
+   ============================================ */
+
+#login-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 10000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--bg-primary);
+}
+
+.login-card {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    padding: 2.5rem 2rem;
+    width: 360px;
+    max-width: 90vw;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+}
+
+.login-logo {
+    text-align: center;
+    font-size: 1.6rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-bottom: 1.5rem;
+}
+
+.login-logo .logo-icon {
+    color: var(--accent-primary);
+}
+
+.login-card .form-group {
+    margin-bottom: 1rem;
+}
+
+.login-card input[type="password"] {
+    width: 100%;
+    padding: 0.65rem 0.75rem;
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    color: var(--text-primary);
+    font-size: 0.95rem;
+}
+
+.login-card input[type="password"]:focus {
+    outline: none;
+    border-color: var(--accent-primary);
+}
+
+.login-error {
+    color: var(--red);
+    font-size: 0.85rem;
+    margin-bottom: 0.75rem;
+}

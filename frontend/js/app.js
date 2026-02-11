@@ -11,15 +11,81 @@ class JobTrackerApp {
         this.totalPages = 1;
         this.searchTerm = '';
         this.statusFilter = '';
-        
+        this._interviewCache = {};
+
         this.init();
     }
 
     async init() {
         this.bindEvents();
+        // Check app authentication before loading data
+        const authed = await this.checkAppAuth();
+        if (!authed) return;
         this.checkUrlParams();
         await this.checkGmailStatus();
         await this.loadDashboard();
+    }
+
+    async checkAppAuth() {
+        try {
+            const status = await api.checkAuthStatus();
+            if (!status.auth_required || status.authenticated) {
+                this.hideLoginScreen();
+                return true;
+            }
+            this.showLoginScreen();
+            return false;
+        } catch {
+            this.showLoginScreen();
+            return false;
+        }
+    }
+
+    showLoginScreen() {
+        let overlay = document.getElementById('login-overlay');
+        if (!overlay) {
+            overlay = document.createElement('div');
+            overlay.id = 'login-overlay';
+            overlay.innerHTML = `
+                <div class="login-card">
+                    <div class="login-logo"><span class="logo-icon">&#9672;</span> JobTrack</div>
+                    <form id="login-form">
+                        <div class="form-group">
+                            <label for="login-password">Password</label>
+                            <input type="password" id="login-password" placeholder="Enter password" required autofocus>
+                        </div>
+                        <div id="login-error" class="login-error" style="display:none;"></div>
+                        <button type="submit" class="btn-primary" style="width:100%;">Log In</button>
+                    </form>
+                </div>
+            `;
+            document.body.appendChild(overlay);
+            document.getElementById('login-form').addEventListener('submit', (e) => this.handleLogin(e));
+        }
+        overlay.style.display = 'flex';
+    }
+
+    hideLoginScreen() {
+        const overlay = document.getElementById('login-overlay');
+        if (overlay) overlay.style.display = 'none';
+    }
+
+    async handleLogin(e) {
+        e.preventDefault();
+        const pw = document.getElementById('login-password').value;
+        const errEl = document.getElementById('login-error');
+        errEl.style.display = 'none';
+
+        try {
+            await api.login(pw);
+            this.hideLoginScreen();
+            this.checkUrlParams();
+            await this.checkGmailStatus();
+            await this.loadDashboard();
+        } catch (err) {
+            errEl.textContent = 'Invalid password';
+            errEl.style.display = 'block';
+        }
     }
 
     bindEvents() {
@@ -104,7 +170,7 @@ class JobTrackerApp {
             this.showToast('Gmail connected successfully!', 'success');
             window.history.replaceState({}, '', '/');
         } else if (params.get('auth_error')) {
-            this.showToast(`Gmail connection failed: ${params.get('auth_error')}`, 'error');
+            this.showToast('Gmail connection failed. Please try again.', 'error');
             window.history.replaceState({}, '', '/');
         }
     }
@@ -247,15 +313,19 @@ class JobTrackerApp {
             return;
         }
         
-        container.innerHTML = relevantStatuses.map(item => `
+        container.innerHTML = relevantStatuses.map(item => {
+            const widthPct = Math.min((item.count / maxCount) * 100, 100);
+            const safeColor = /^#[0-9a-fA-F]{3,8}$/.test(item.color) ? item.color : '#888';
+            return `
             <div class="status-bar-item">
-                <span class="status-bar-label">${item.label}</span>
+                <span class="status-bar-label">${this.escapeHtml(item.label)}</span>
                 <div class="status-bar-track">
-                    <div class="status-bar-fill" style="width: ${(item.count / maxCount) * 100}%; background: ${item.color}"></div>
+                    <div class="status-bar-fill" style="width: ${widthPct}%; background: ${safeColor}"></div>
                 </div>
-                <span class="status-bar-count">${item.count}</span>
+                <span class="status-bar-count">${parseInt(item.count) || 0}</span>
             </div>
-        `).join('');
+        `;
+        }).join('');
     }
 
     renderInterviewFunnel(funnel, total) {
@@ -1242,8 +1312,8 @@ class JobTrackerApp {
             // Links
             const linksContainer = document.getElementById('detail-links');
             let linksHtml = '';
-            if (application.job_url) {
-                linksHtml += `<a href="${this.escapeHtml(application.job_url)}" target="_blank">🔗 Job Posting</a>`;
+            if (application.job_url && /^https?:\/\//i.test(application.job_url)) {
+                linksHtml += `<a href="${this.escapeHtml(application.job_url)}" target="_blank" rel="noopener noreferrer">🔗 Job Posting</a>`;
             }
             linksContainer.innerHTML = linksHtml;
             
@@ -1277,42 +1347,48 @@ class JobTrackerApp {
     
     renderInterviewTimeline(interviews) {
         const container = document.getElementById('interview-timeline');
-        
+
         if (!interviews || interviews.length === 0) {
             container.innerHTML = '<p class="empty-state">No interviews scheduled yet.</p>';
             return;
         }
-        
+
         // Sort by date (upcoming first, then past)
         interviews.sort((a, b) => new Date(a.scheduled_at) - new Date(b.scheduled_at));
-        
+
+        // Cache interview objects so onclick can reference them safely by ID
+        interviews.forEach(iv => { this._interviewCache[iv.id] = iv; });
+
         container.innerHTML = interviews.map(interview => {
             const dt = new Date(interview.scheduled_at);
             const isPast = dt < new Date();
             const isToday = dt.toDateString() === new Date().toDateString();
-            const interviewType = interview.interview_type ? 
+            const interviewType = interview.interview_type ?
                 interview.interview_type.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase()) : 'Interview';
-            
+
             let statusClass = '';
             if (interview.is_cancelled) statusClass = 'cancelled';
             else if (interview.is_completed) statusClass = 'completed';
-            
+
             let outcomeBadge = '';
             if (interview.outcome) {
-                outcomeBadge = `<span class="interview-outcome-badge ${interview.outcome}">${interview.outcome}</span>`;
+                const safeOutcome = this.escapeHtml(interview.outcome);
+                outcomeBadge = `<span class="interview-outcome-badge ${safeOutcome}">${safeOutcome}</span>`;
             }
-            
+
             let notesPreview = '';
             if (interview.interview_notes) {
                 const preview = interview.interview_notes.substring(0, 100);
                 notesPreview = `<div class="interview-card-notes">${this.escapeHtml(preview)}${interview.interview_notes.length > 100 ? '...' : ''}</div>`;
             }
-            
+
+            const safeCalLink = interview.calendar_event_link ? this.escapeHtml(interview.calendar_event_link) : '';
+
             return `
                 <div class="interview-card ${statusClass}">
                     <div class="interview-card-header">
                         <div>
-                            <span class="interview-card-type">${interviewType}</span>
+                            <span class="interview-card-type">${this.escapeHtml(interviewType)}</span>
                             ${interview.title ? `<span class="interview-card-title"> - ${this.escapeHtml(interview.title)}</span>` : ''}
                             ${outcomeBadge}
                         </div>
@@ -1324,11 +1400,11 @@ class JobTrackerApp {
                     ${interview.interviewer_name ? `<div class="interview-card-interviewer">With: ${this.escapeHtml(interview.interviewer_name)}</div>` : ''}
                     ${notesPreview}
                     <div class="interview-card-actions">
-                        <button class="btn-small btn-secondary" onclick="app.openInterviewNotesModal(${JSON.stringify(interview).replace(/"/g, '&quot;')})">
+                        <button class="btn-small btn-secondary" onclick="app.openInterviewNotesModal(app._interviewCache[${parseInt(interview.id)}])">
                             ${isPast || interview.is_completed ? '📝 View/Edit Notes' : '📝 Add Notes'}
                         </button>
-                        ${interview.calendar_event_link ? `<a href="${interview.calendar_event_link}" target="_blank" class="btn-small btn-secondary">📅 Calendar</a>` : ''}
-                        ${!interview.is_cancelled ? `<button class="btn-small btn-secondary" onclick="app.cancelInterview(${interview.id})">Cancel</button>` : ''}
+                        ${safeCalLink ? `<a href="${safeCalLink}" target="_blank" class="btn-small btn-secondary">📅 Calendar</a>` : ''}
+                        ${!interview.is_cancelled ? `<button class="btn-small btn-secondary" onclick="app.cancelInterview(${parseInt(interview.id)})">Cancel</button>` : ''}
                     </div>
                 </div>
             `;

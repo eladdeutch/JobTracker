@@ -4,6 +4,7 @@ from datetime import datetime, timedelta
 
 from backend.models import SessionLocal, Application, Interview, InterviewType, UserSettings
 from backend.services.calendar_service import calendar_service
+from backend.services.encryption import encrypt_token, decrypt_token
 
 interviews_bp = Blueprint('interviews', __name__, url_prefix='/api/interviews')
 
@@ -15,15 +16,15 @@ def _get_calendar_credentials(db):
         return None
     
     calendar_service.set_credentials(
-        access_token=settings.gmail_access_token,
-        refresh_token=settings.gmail_refresh_token,
+        access_token=decrypt_token(settings.gmail_access_token),
+        refresh_token=decrypt_token(settings.gmail_refresh_token),
         expiry=settings.gmail_token_expiry
     )
-    
-    # Update tokens if refreshed
+
+    # Update tokens if refreshed (encrypt before saving)
     updated_tokens = calendar_service.get_updated_tokens()
     if updated_tokens:
-        settings.gmail_access_token = updated_tokens['access_token']
+        settings.gmail_access_token = encrypt_token(updated_tokens['access_token'])
         if updated_tokens.get('expiry'):
             settings.gmail_token_expiry = datetime.fromisoformat(updated_tokens['expiry'])
         db.commit()

@@ -11,7 +11,7 @@ class ApiClient {
 
     async request(endpoint, options = {}) {
         const url = `${this.baseUrl}${endpoint}`;
-        const config = {
+        const cfg = {
             headers: {
                 'Content-Type': 'application/json',
                 ...options.headers
@@ -19,13 +19,20 @@ class ApiClient {
             ...options
         };
 
-        if (config.body && typeof config.body === 'object') {
-            config.body = JSON.stringify(config.body);
+        if (cfg.body && typeof cfg.body === 'object') {
+            cfg.body = JSON.stringify(cfg.body);
         }
 
         try {
-            const response = await fetch(url, config);
+            const response = await fetch(url, cfg);
             const data = await response.json();
+
+            if (response.status === 401 && endpoint !== '/auth/login' && endpoint !== '/auth/status') {
+                if (typeof app !== 'undefined' && app.showLoginScreen) {
+                    app.showLoginScreen();
+                }
+                throw new Error('Authentication required');
+            }
 
             if (!response.ok) {
                 throw new Error(data.error || 'Request failed');
@@ -36,6 +43,22 @@ class ApiClient {
             console.error(`API Error [${endpoint}]:`, error);
             throw error;
         }
+    }
+
+    // App authentication
+    async checkAuthStatus() {
+        return this.request('/auth/status');
+    }
+
+    async login(password) {
+        return this.request('/auth/login', {
+            method: 'POST',
+            body: { password }
+        });
+    }
+
+    async appLogout() {
+        return this.request('/auth/logout', { method: 'POST' });
     }
 
     // Auth endpoints

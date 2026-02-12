@@ -1,6 +1,6 @@
 """Application management routes."""
 from flask import Blueprint, request, jsonify
-from datetime import datetime
+from datetime import datetime, timedelta
 from sqlalchemy import or_
 
 from backend.models import SessionLocal, Application, Email, Reminder, ApplicationStatus
@@ -353,6 +353,67 @@ def bulk_create():
     except Exception as e:
         db.rollback()
         return jsonify({"error": str(e)}), 400
+    finally:
+        db.close()
+
+
+@applications_bp.route('/auto-reject-stale', methods=['POST'])
+def auto_reject_stale():
+    """Auto-reject applications that haven't progressed in N days."""
+    data = request.json or {}
+    days_stale = data.get('days_stale', 30)
+
+    cutoff_date = datetime.utcnow() - timedelta(days=days_stale)
+
+    # Pre-interview statuses eligible for auto-rejection
+    stale_statuses = [
+        ApplicationStatus.APPLIED,
+        ApplicationStatus.PROFILE_VIEWED,
+        ApplicationStatus.PHONE_SCREEN,
+        ApplicationStatus.NO_RESPONSE,
+    ]
+
+    # Map current status to rejected_at_stage label
+    stage_map = {
+        ApplicationStatus.APPLIED: "Application/Resume Stage",
+        ApplicationStatus.PROFILE_VIEWED: "Application/Resume Stage",
+        ApplicationStatus.NO_RESPONSE: "Application/Resume Stage",
+        ApplicationStatus.PHONE_SCREEN: "After Phone Screen",
+    }
+
+    db = SessionLocal()
+    try:
+        stale_apps = db.query(Application).filter(
+            Application.status.in_(stale_statuses),
+            Application.applied_date < cutoff_date
+        ).all()
+
+        now = datetime.utcnow()
+        rejected = []
+        for app in stale_apps:
+            original_status = app.status
+            old_label = original_status.value.replace('_', ' ').title()
+
+            app.status = ApplicationStatus.REJECTED
+            app.rejected_at_stage = stage_map.get(original_status, "Application/Resume Stage")
+            app.last_contact_date = now
+
+            note = f"Auto-rejected: No progress for {days_stale}+ days (was: {old_label})"
+            if app.notes:
+                app.notes = app.notes.rstrip() + "\n" + note
+            else:
+                app.notes = note
+            rejected.append(app)
+
+        db.commit()
+
+        return jsonify({
+            "rejected": len(rejected),
+            "applications": [a.to_dict() for a in rejected]
+        })
+    except Exception as e:
+        db.rollback()
+        return jsonify({"error": str(e)}), 500
     finally:
         db.close()
 

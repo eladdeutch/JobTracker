@@ -2,7 +2,7 @@
 import base64
 import os
 import re
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Optional, List, Dict, Any
 from email.utils import parsedate_to_datetime
 
@@ -184,7 +184,7 @@ class GmailService:
                 try:
                     received_date = parsedate_to_datetime(date_str)
                 except Exception:
-                    received_date = datetime.utcnow()
+                    received_date = datetime.now(timezone.utc)
             
             # Get snippet and body preview
             snippet = message.get('snippet', '')

@@ -11,7 +11,7 @@ This server exposes tools for:
 import sys
 import os
 import json
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Any
 
 # Add project root to path
@@ -84,7 +84,7 @@ def scan_gmail_for_jobs(days_back: int = 30, max_results: int = 100) -> dict:
                 settings.gmail_token_expiry = datetime.fromisoformat(updated_tokens['expiry'])
         
         # Calculate search date
-        after_date = datetime.utcnow() - timedelta(days=days_back)
+        after_date = datetime.now(timezone.utc) - timedelta(days=days_back)
         
         # Fetch emails
         raw_emails = gmail_service.search_emails(
@@ -121,7 +121,7 @@ def scan_gmail_for_jobs(days_back: int = 30, max_results: int = 100) -> dict:
             db.add(email)
             new_count += 1
         
-        settings.last_sync_date = datetime.utcnow()
+        settings.last_sync_date = datetime.now(timezone.utc)
         db.commit()
         
         return {
@@ -308,7 +308,7 @@ def update_application_status(application_id: int, new_status: str, rejected_at_
         
         try:
             application.status = ApplicationStatus(new_status)
-            application.last_contact_date = datetime.utcnow()
+            application.last_contact_date = datetime.now(timezone.utc)
             
             if new_status == 'rejected' and rejected_at_stage:
                 application.rejected_at_stage = rejected_at_stage
@@ -353,7 +353,7 @@ def add_application(
             job_url=job_url,
             location=location,
             notes=notes,
-            applied_date=datetime.utcnow()
+            applied_date=datetime.now(timezone.utc)
         )
         db.add(application)
         db.commit()
@@ -454,7 +454,7 @@ def create_followup_reminder(
         
         reminder = Reminder(
             application_id=application_id,
-            reminder_date=datetime.utcnow() + timedelta(days=days_from_now),
+            reminder_date=datetime.now(timezone.utc) + timedelta(days=days_from_now),
             message=message or f"Follow up with {application.company_name}"
         )
         db.add(reminder)
@@ -481,7 +481,7 @@ def get_due_reminders() -> list:
     """
     db = get_db()
     try:
-        today_end = datetime.utcnow().replace(hour=23, minute=59, second=59)
+        today_end = datetime.now(timezone.utc).replace(hour=23, minute=59, second=59)
         
         reminders = db.query(Reminder).join(Application).filter(
             Reminder.is_completed == False,
@@ -531,7 +531,7 @@ def get_applications_needing_followup(days_inactive: int = 7) -> list:
     """
     db = get_db()
     try:
-        cutoff_date = datetime.utcnow() - timedelta(days=days_inactive)
+        cutoff_date = datetime.now(timezone.utc) - timedelta(days=days_inactive)
         
         # Active statuses that might need follow-up
         active_statuses = [

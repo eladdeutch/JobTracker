@@ -1,5 +1,5 @@
 """Statistics and analytics service."""
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Dict, Any, List
 from sqlalchemy import func, case
 from sqlalchemy.orm import Session
@@ -38,7 +38,7 @@ class StatsService:
         ).scalar() or 0
         
         # This week's applications
-        week_ago = datetime.utcnow() - timedelta(days=7)
+        week_ago = datetime.now(timezone.utc) - timedelta(days=7)
         this_week = db.query(func.count(Application.id)).filter(
             Application.applied_date >= week_ago
         ).scalar() or 0
@@ -221,7 +221,7 @@ class StatsService:
 
     def _get_timeline_stats(self, db: Session, days: int = 30) -> List[Dict[str, Any]]:
         """Get application timeline for the past N days."""
-        start_date = datetime.utcnow() - timedelta(days=days)
+        start_date = datetime.now(timezone.utc) - timedelta(days=days)
         
         results = db.query(
             func.date(Application.applied_date).label('date'),
@@ -237,7 +237,7 @@ class StatsService:
         timeline = []
         current_date = start_date.date()
         
-        while current_date <= datetime.utcnow().date():
+        while current_date <= datetime.now(timezone.utc).date():
             timeline.append({
                 "date": current_date.isoformat(),
                 "count": date_counts.get(current_date, 0)

@@ -1,6 +1,6 @@
 """Reminder management routes."""
 from flask import Blueprint, request, jsonify
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 from backend.models import SessionLocal, Reminder, Application
 
@@ -24,7 +24,7 @@ def get_reminders():
             )
         
         if upcoming_only:
-            query = query.filter(Reminder.reminder_date >= datetime.utcnow())
+            query = query.filter(Reminder.reminder_date >= datetime.now(timezone.utc))
         
         reminders = query.order_by(Reminder.reminder_date.asc()).all()
         
@@ -41,7 +41,7 @@ def get_due_reminders():
     db = SessionLocal()
     try:
         # End of today
-        today_end = datetime.utcnow().replace(hour=23, minute=59, second=59)
+        today_end = datetime.now(timezone.utc).replace(hour=23, minute=59, second=59)
         
         reminders = db.query(Reminder).join(Application).filter(
             Reminder.is_completed == False,
@@ -144,7 +144,7 @@ def snooze_reminder(reminder_id):
             return jsonify({"error": "Reminder not found"}), 404
         
         # Push reminder date forward
-        new_date = datetime.utcnow() + timedelta(days=days)
+        new_date = datetime.now(timezone.utc) + timedelta(days=days)
         reminder.reminder_date = new_date
         
         # Update application's next action date
@@ -185,7 +185,7 @@ def auto_create_reminders():
     db = SessionLocal()
     try:
         # Find applications without recent activity and no pending reminders
-        cutoff_date = datetime.utcnow() - timedelta(days=days_inactive)
+        cutoff_date = datetime.now(timezone.utc) - timedelta(days=days_inactive)
         
         # Get application IDs with pending reminders
         apps_with_reminders = db.query(Reminder.application_id).filter(
@@ -207,7 +207,7 @@ def auto_create_reminders():
         for app in applications:
             reminder = Reminder(
                 application_id=app.id,
-                reminder_date=datetime.utcnow() + timedelta(days=1),
+                reminder_date=datetime.now(timezone.utc) + timedelta(days=1),
                 message=f"Follow up with {app.company_name} - no response in {days_inactive}+ days"
             )
             db.add(reminder)

@@ -1,6 +1,6 @@
 """Email scanning and management routes."""
 from flask import Blueprint, request, jsonify
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 from backend.models import SessionLocal, Email, Application, UserSettings, ApplicationStatus
 from backend.services import gmail_service, email_parser
@@ -38,7 +38,7 @@ def scan_emails():
                 settings.gmail_token_expiry = datetime.fromisoformat(updated_tokens['expiry'])
         
         # Calculate search date
-        after_date = datetime.utcnow() - timedelta(days=days_back)
+        after_date = datetime.now(timezone.utc) - timedelta(days=days_back)
         
         # Fetch emails
         raw_emails = gmail_service.search_emails(
@@ -94,7 +94,7 @@ def scan_emails():
             processed.append(email)
         
         # Update last sync time
-        settings.last_sync_date = datetime.utcnow()
+        settings.last_sync_date = datetime.now(timezone.utc)
         db.commit()
         
         return jsonify({

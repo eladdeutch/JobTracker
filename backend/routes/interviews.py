@@ -1,6 +1,6 @@
 """Interview management routes with Google Calendar integration."""
 from flask import Blueprint, request, jsonify
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 from backend.models import SessionLocal, Application, Interview, InterviewType, UserSettings
 from backend.services.calendar_service import calendar_service
@@ -47,7 +47,7 @@ def get_interviews():
         
         if upcoming_only:
             query = query.filter(
-                Interview.scheduled_at >= datetime.utcnow(),
+                Interview.scheduled_at >= datetime.now(timezone.utc),
                 Interview.is_cancelled == False
             )
         
@@ -341,7 +341,7 @@ def get_upcoming_interviews():
     db = SessionLocal()
     try:
         interviews = db.query(Interview).filter(
-            Interview.scheduled_at >= datetime.utcnow(),
+            Interview.scheduled_at >= datetime.now(timezone.utc),
             Interview.is_cancelled == False
         ).order_by(Interview.scheduled_at.asc()).limit(limit).all()
         

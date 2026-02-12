@@ -1,5 +1,5 @@
 """Google Calendar API integration service."""
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Optional, List, Dict, Any
 
 from google.oauth2.credentials import Credentials
@@ -214,7 +214,7 @@ class CalendarService:
             raise ValueError("Calendar service not initialized.")
         
         try:
-            now = datetime.utcnow().isoformat() + 'Z'
+            now = datetime.now(timezone.utc).isoformat().replace('+00:00', 'Z')
             
             events_result = self.service.events().list(
                 calendarId='primary',

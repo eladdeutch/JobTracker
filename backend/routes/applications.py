@@ -1,6 +1,6 @@
 """Application management routes."""
 from flask import Blueprint, request, jsonify
-from datetime import datetime, timedelta
+from datetime import datetime, timezone
 from sqlalchemy import or_
 
 from backend.models import SessionLocal, Application, Email, Reminder, ApplicationStatus
@@ -99,7 +99,7 @@ def create_application():
             salary_max=data.get('salary_max'),
             status=status,
             rejected_at_stage=data.get('rejected_at_stage') if status == ApplicationStatus.REJECTED else None,
-            applied_date=datetime.fromisoformat(data['applied_date']) if data.get('applied_date') else datetime.utcnow(),
+            applied_date=datetime.fromisoformat(data['applied_date']) if data.get('applied_date') else datetime.now(timezone.utc),
             recruiter_name=data.get('recruiter_name'),
             recruiter_email=data.get('recruiter_email'),
             job_description=data.get('job_description'),
@@ -313,7 +313,7 @@ def update_status(app_id):
         
         try:
             application.status = ApplicationStatus(new_status)
-            application.last_contact_date = datetime.utcnow()
+            application.last_contact_date = datetime.now(timezone.utc)
             db.commit()
             db.refresh(application)
             
@@ -338,7 +338,7 @@ def bulk_create():
                 company_name=app_data.get('company_name', 'Unknown Company'),
                 position_title=app_data.get('position_title', 'Unknown Position'),
                 status=ApplicationStatus.APPLIED,
-                applied_date=datetime.fromisoformat(app_data['applied_date']) if app_data.get('applied_date') else datetime.utcnow(),
+                applied_date=datetime.fromisoformat(app_data['applied_date']) if app_data.get('applied_date') else datetime.now(timezone.utc),
                 notes=app_data.get('notes')
             )
             db.add(application)

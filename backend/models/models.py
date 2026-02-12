@@ -1,6 +1,11 @@
 """Database models for job application tracker."""
-from datetime import datetime
+from datetime import datetime, timezone
 from sqlalchemy import Column, Integer, String, Text, DateTime, Boolean, ForeignKey, Enum, Float
+
+
+def _utc_now():
+    """Return current UTC time (timezone-aware). Used for SQLAlchemy defaults."""
+    return datetime.now(timezone.utc)
 from sqlalchemy.orm import relationship
 import enum
 from backend.models.database import Base
@@ -44,7 +49,7 @@ class Application(Base):
     # Track at which stage rejection happened
     rejected_at_stage = Column(String(100), nullable=True)
     
-    applied_date = Column(DateTime, default=datetime.utcnow)
+    applied_date = Column(DateTime, default=_utc_now)
     last_contact_date = Column(DateTime, nullable=True)
     next_action_date = Column(DateTime, nullable=True)
     
@@ -54,8 +59,8 @@ class Application(Base):
     job_description = Column(Text, nullable=True)
     notes = Column(Text, nullable=True)
     
-    created_at = Column(DateTime, default=datetime.utcnow)
-    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    created_at = Column(DateTime, default=_utc_now)
+    updated_at = Column(DateTime, default=_utc_now, onupdate=_utc_now)
     
     # Relationships
     emails = relationship("Email", back_populates="application", cascade="all, delete-orphan")
@@ -115,7 +120,7 @@ class Email(Base):
     is_processed = Column(Boolean, default=False)
     is_job_related = Column(Boolean, default=True)
     
-    created_at = Column(DateTime, default=datetime.utcnow)
+    created_at = Column(DateTime, default=_utc_now)
     
     # Relationships
     application = relationship("Application", back_populates="emails")
@@ -154,7 +159,7 @@ class Reminder(Base):
     is_completed = Column(Boolean, default=False)
     is_dismissed = Column(Boolean, default=False)
     
-    created_at = Column(DateTime, default=datetime.utcnow)
+    created_at = Column(DateTime, default=_utc_now)
     
     # Relationships
     application = relationship("Application", back_populates="reminders")
@@ -229,8 +234,8 @@ class Interview(Base):
     outcome = Column(String(50), nullable=True)  # passed, failed, pending
     confidence_rating = Column(Integer, nullable=True)  # 1-5 self-assessment
     
-    created_at = Column(DateTime, default=datetime.utcnow)
-    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    created_at = Column(DateTime, default=_utc_now)
+    updated_at = Column(DateTime, default=_utc_now, onupdate=_utc_now)
     
     # Relationships
     application = relationship("Application", back_populates="interviews")
@@ -290,8 +295,8 @@ class UserSettings(Base):
     # Reminder settings
     default_followup_days = Column(Integer, default=7)
     
-    created_at = Column(DateTime, default=datetime.utcnow)
-    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    created_at = Column(DateTime, default=_utc_now)
+    updated_at = Column(DateTime, default=_utc_now, onupdate=_utc_now)
     
     def to_dict(self):
         """Convert to dictionary (excluding sensitive data)."""

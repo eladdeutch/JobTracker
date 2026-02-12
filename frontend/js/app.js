@@ -103,6 +103,7 @@ class JobTrackerApp {
 
         // Applications
         document.getElementById('btn-add-application').addEventListener('click', () => this.openApplicationModal());
+        document.getElementById('btn-auto-reject-stale').addEventListener('click', () => this.autoRejectStale());
         document.getElementById('search-input').addEventListener('input', debounce((e) => {
             this.searchTerm = e.target.value;
             this.currentPage = 1;
@@ -736,6 +737,35 @@ class JobTrackerApp {
             }
         } catch (error) {
             this.showToast('Failed to delete application', 'error');
+        }
+    }
+
+    async autoRejectStale() {
+        if (!confirm('Auto-reject all pre-interview applications with no progress for 30+ days?\n\nThis will mark them as Rejected with a note.')) {
+            return;
+        }
+
+        const btn = document.getElementById('btn-auto-reject-stale');
+        const originalText = btn.textContent;
+        btn.disabled = true;
+        btn.textContent = 'Processing...';
+
+        try {
+            const result = await api.autoRejectStale({ days_stale: 30 });
+            if (result.rejected > 0) {
+                this.showToast(`Auto-rejected ${result.rejected} stale application${result.rejected > 1 ? 's' : ''}`, 'success');
+            } else {
+                this.showToast('No stale applications found', 'info');
+            }
+            this.loadApplications();
+            if (this.currentView === 'dashboard') {
+                this.loadDashboard();
+            }
+        } catch (error) {
+            this.showToast('Failed to auto-reject stale applications', 'error');
+        } finally {
+            btn.disabled = false;
+            btn.textContent = originalText;
         }
     }
 

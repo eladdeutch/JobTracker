@@ -104,6 +104,13 @@ class ApiClient {
         });
     }
 
+    async autoRejectStale(options = {}) {
+        return this.request('/api/applications/auto-reject-stale', {
+            method: 'POST',
+            body: options
+        });
+    }
+
     async updateApplicationStatus(id, status) {
         return this.request(`/api/applications/${id}/status`, {
             method: 'PATCH',

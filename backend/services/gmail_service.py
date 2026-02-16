@@ -142,6 +142,53 @@ class GmailService:
             print(f"Gmail API error: {error}")
             return []
     
+    def build_company_queries(
+        self,
+        company_names: List[str],
+        after_date: Optional[datetime] = None
+    ) -> List[str]:
+        """Build batched Gmail queries searching for company names in subject and from fields.
+
+        Returns a list of query strings, each staying under Gmail's query length limit.
+        """
+        if not company_names:
+            return []
+
+        # Deduplicate and clean
+        unique_companies = list(set(name.strip() for name in company_names if name and name.strip()))
+        if not unique_companies:
+            return []
+
+        date_filter = ""
+        if after_date:
+            date_str = after_date.strftime("%Y/%m/%d")
+            date_filter = f" after:{date_str}"
+
+        MAX_QUERY_LENGTH = 3000
+        queries = []
+        current_batch = []
+        current_length = len(date_filter) + 2  # account for outer parens
+
+        for company in unique_companies:
+            # Each company generates: (subject:"Company" OR from:"Company")
+            fragment = f'(subject:"{company}" OR from:"{company}")'
+            fragment_length = len(fragment) + 4  # " OR " separator
+
+            if current_length + fragment_length > MAX_QUERY_LENGTH and current_batch:
+                batch_query = "(" + " OR ".join(current_batch) + ")" + date_filter
+                queries.append(batch_query)
+                current_batch = [fragment]
+                current_length = len(fragment) + len(date_filter) + 2
+            else:
+                current_batch.append(fragment)
+                current_length += fragment_length
+
+        if current_batch:
+            batch_query = "(" + " OR ".join(current_batch) + ")" + date_filter
+            queries.append(batch_query)
+
+        return queries
+
     def get_email_details(self, message_id: str) -> Optional[Dict[str, Any]]:
         """Get detailed email information."""
         if not self.service:

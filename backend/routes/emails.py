@@ -40,18 +40,52 @@ def scan_emails():
         # Calculate search date
         after_date = datetime.now(timezone.utc) - timedelta(days=days_back)
         
-        # Fetch emails
-        raw_emails = gmail_service.search_emails(
+        # Fetch emails from keyword query (existing behavior)
+        raw_emails_keywords = gmail_service.search_emails(
             max_results=max_results,
             after_date=after_date
         )
-        
+
+        # Fetch emails from company-name queries (subject + from)
+        raw_emails_companies = []
+        terminal_statuses = [
+            ApplicationStatus.REJECTED,
+            ApplicationStatus.WITHDRAWN,
+            ApplicationStatus.OFFER_DECLINED,
+            ApplicationStatus.OFFER_ACCEPTED,
+        ]
+        active_apps = db.query(Application).filter(
+            Application.status.notin_(terminal_statuses)
+        ).all()
+        company_names = list(set(
+            app.company_name for app in active_apps if app.company_name
+        ))
+
+        if company_names:
+            company_queries = gmail_service.build_company_queries(
+                company_names, after_date=after_date
+            )
+            for cq in company_queries:
+                results = gmail_service.search_emails(
+                    query=cq,
+                    max_results=max_results
+                )
+                raw_emails_companies.extend(results)
+
+        # Merge and deduplicate by gmail_id
+        seen_ids = set()
+        raw_emails = []
+        for email in raw_emails_keywords + raw_emails_companies:
+            if email['gmail_id'] not in seen_ids:
+                seen_ids.add(email['gmail_id'])
+                raw_emails.append(email)
+
         # Parse and store emails
         processed = []
         skipped_existing = 0
         skipped_dismissed = 0
         skipped_already_processed = 0
-        
+
         for raw_email in raw_emails:
             # Check if already exists
             existing = db.query(Email).filter(
@@ -99,6 +133,11 @@ def scan_emails():
         
         return jsonify({
             "scanned": len(raw_emails),
+            "sources": {
+                "keyword_matches": len(raw_emails_keywords),
+                "company_matches": len(raw_emails_companies),
+                "unique_total": len(raw_emails)
+            },
             "new_emails": len(processed),
             "skipped": {
                 "dismissed": skipped_dismissed,
